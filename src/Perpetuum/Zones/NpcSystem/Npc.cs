@@ -191,7 +191,7 @@ namespace Perpetuum.Zones.NpcSystem
     {
         private List<ModuleActivator> _moduleActivators;
         protected bool _npcHasMissiles = false;
-        private const int UPDATE_FREQ = 1650;
+        protected const int UPDATE_FREQ = 1650;
         private TimeSpan _hostilesUpdateFrequency = TimeSpan.FromMilliseconds(UPDATE_FREQ);
         private readonly IntervalTimer _processHostilesTimer = new IntervalTimer(UPDATE_FREQ);
         private readonly IntervalTimer _primarySelectTimer = new IntervalTimer(UPDATE_FREQ);
@@ -499,6 +499,8 @@ namespace Perpetuum.Zones.NpcSystem
             WriteLog("Enter evade mode.");
         }
 
+        // Timer for periodically checking the main hostile target.
+        private readonly IntervalTimer _updateHostileTimer = new IntervalTimer(UPDATE_FREQ, true);
         private Position _lastTargetPosition;
         private PathMovement _movement;
         private PathMovement _nextMovement;
@@ -509,7 +511,17 @@ namespace Perpetuum.Zones.NpcSystem
             if (mostHated == null)
                 return;
 
-            if (!mostHated.unit.CurrentPosition.IsEqual2D(_lastTargetPosition))
+            var forceCheckPrimary = false;
+            _updateHostileTimer.Update(time);
+            if (_updateHostileTimer.Passed)
+            {
+                _updateHostileTimer.Reset();
+
+                // Forced check of the main hostile target.
+                forceCheckPrimary = _movement?.Arrived ?? true;
+            }
+
+            if (!mostHated.unit.CurrentPosition.IsEqual2D(_lastTargetPosition) || forceCheckPrimary)
             {
                 _lastTargetPosition = mostHated.unit.CurrentPosition;
 
