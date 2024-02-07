@@ -589,6 +589,7 @@ namespace Perpetuum.Zones.NpcSystem
             var end = hostile.CurrentPosition.GetRandomPositionInRange2D(0, npc.BestCombatRange - 1).ToPoint();
 
             npc.StopMoving();
+            _movement = null;
 
             var maxNode = Math.Pow(npc.HomeRange, 2) * Math.PI;
             var pq = new PriorityQueue<Node>((int) maxNode);
